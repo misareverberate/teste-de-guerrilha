@@ -120,7 +120,7 @@ export default function Home() {
               setCollectorName("");
             }}
           >
-            Trocar coletor
+            Trocar Usuário
           </button>
           <button
             className={`tab-btn${screen === "dash" ? " on" : ""}`}
