@@ -83,6 +83,10 @@ export default function Dashboard({ resps }: Props) {
 
   const COLORS = ["#4338ca","#0d9488","#d97706","#dc2626","#6366f1","#ec4899","#14b8a6","#0284c7"];
 
+  function compactLabel(label: string, max = 22) {
+    return label.length > max ? `${label.slice(0, max - 1)}…` : label;
+  }
+
   function BarCard({ title, field, color = "#4338ca" }: { title: string; field: string; color?: string }) {
     const data = toBarData(field);
     if (!data.length) return null;
@@ -92,7 +96,7 @@ export default function Dashboard({ resps }: Props) {
         <ResponsiveContainer width="100%" height={data.length * 48 + 20}>
           <BarChart data={data} layout="vertical" margin={{ left: 0, right: 40, top: 0, bottom: 0 }}>
             <XAxis type="number" hide />
-            <YAxis type="category" dataKey="name" width={160} tick={{ fontSize: 11, fill: "#9b9690" }} tickLine={false} axisLine={false} />
+            <YAxis type="category" dataKey="name" width={112} tickFormatter={(value: string) => compactLabel(value, 18)} tick={{ fontSize: 11, fill: "#9b9690" }} tickLine={false} axisLine={false} />
             <Tooltip content={<CTooltip />} />
             <Bar dataKey="value" fill={color} radius={[0, 8, 8, 0]} label={{ position: "right", fontSize: 12, fill: "#9b9690" }} />
           </BarChart>
@@ -107,8 +111,9 @@ export default function Dashboard({ resps }: Props) {
     return (
       <div className="cc">
         <div className="cc-t">{title}</div>
-        <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
-          <ResponsiveContainer width={160} height={160}>
+        <div className="pie-layout">
+          <div className="pie-chart-wrap">
+          <ResponsiveContainer width="100%" height={160}>
             <PieChart>
               <Pie data={data} cx="50%" cy="50%" innerRadius={44} outerRadius={72} dataKey="value" paddingAngle={3} strokeWidth={0}>
                 {data.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
@@ -116,12 +121,13 @@ export default function Dashboard({ resps }: Props) {
               <Tooltip content={<CTooltip />} />
             </PieChart>
           </ResponsiveContainer>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
+          </div>
+          <div className="pie-legend">
             {data.map((d, i) => (
-              <div key={d.name} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12 }}>
+              <div key={d.name} className="pie-legend-item">
                 <div style={{ width: 10, height: 10, borderRadius: "50%", background: COLORS[i % COLORS.length], flexShrink: 0 }} />
-                <span style={{ color: "var(--ink2)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{d.name}</span>
-                <span style={{ color: "var(--ink3)", fontWeight: 700, fontFamily: "var(--font2)" }}>{d.value}</span>
+                <span className="pie-legend-label">{d.name}</span>
+                <span className="pie-legend-value">{d.value}</span>
               </div>
             ))}
           </div>
@@ -147,18 +153,18 @@ export default function Dashboard({ resps }: Props) {
           <span>Distribuição de notas</span>
           <span style={{ fontSize: 11, color: "var(--ink3)", fontWeight: 400, textTransform: "none" as const, letterSpacing: 0 }}>{notas.length} avaliações</span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 24, marginBottom: 20 }}>
-          <div style={{ fontFamily: "var(--font2)", fontSize: 56, fontWeight: 700, lineHeight: 1, letterSpacing: "-.04em", color: noteHex(Math.round(parseFloat(stats.avg))) }}>
+        <div className="nota-summary">
+          <div className="nota-value" style={{ color: noteHex(Math.round(parseFloat(stats.avg))) }}>
             {stats.avg}
           </div>
-          <div>
+          <div className="nota-breakdown">
             <div style={{ fontSize: 12, color: "var(--ink3)", marginBottom: 8 }}>média geral</div>
-            <div className="nps-bar" style={{ width: 180 }}>
+            <div className="nps-bar nota-nps">
               <div className="nps-seg" style={{ width: `${(detractors / total) * 100}%`, background: "#dc2626", borderRadius: "99px 0 0 99px" }} />
               <div className="nps-seg" style={{ width: `${(passives / total) * 100}%`, background: "#d97706" }} />
               <div className="nps-seg" style={{ width: `${(promoters / total) * 100}%`, background: "#0d9488", borderRadius: "0 99px 99px 0" }} />
             </div>
-            <div style={{ display: "flex", gap: 12, marginTop: 6, fontSize: 10, color: "var(--ink3)" }}>
+            <div className="nota-legend">
               <span>🔴 {detractors} detratores</span>
               <span>🟡 {passives} neutros</span>
               <span>🟢 {promoters} promotores</span>
@@ -285,14 +291,14 @@ export default function Dashboard({ resps }: Props) {
     return (
       <div className="cc">
         <div className="cc-t">Tabulação cruzada</div>
-        <div style={{ display: "flex", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
-          <div>
+        <div className="cross-controls">
+          <div className="cross-field">
             <div style={{ fontSize: 10, color: "var(--ink3)", marginBottom: 4 }}>Linhas</div>
             <select value={crossField1} onChange={(e) => setCrossField1(e.target.value)} style={selectStyle}>
               {fieldOpts.map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
             </select>
           </div>
-          <div>
+          <div className="cross-field">
             <div style={{ fontSize: 10, color: "var(--ink3)", marginBottom: 4 }}>Colunas</div>
             <select value={crossField2} onChange={(e) => setCrossField2(e.target.value)} style={selectStyle}>
               {fieldOpts.map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
@@ -385,6 +391,7 @@ export default function Dashboard({ resps }: Props) {
           <span className="search-icon">🔍</span>
           <input className="search-box" placeholder="Buscar por coletor, nome ou resposta…" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
+        <div className="toolbar-actions">
         <div className="filter-wrap">
           <button className={`btn-sm${filterAge ? " active" : ""}`} onClick={() => setShowFilter(!showFilter)}>🏷️ {filterAge || "Filtrar idade"}</button>
           {showFilter && (
@@ -403,6 +410,7 @@ export default function Dashboard({ resps }: Props) {
         <button className="btn-sm" onClick={() => exportJSON(filteredResps)}>↓ JSON</button>
         <button className="btn-sm" onClick={() => exportCSV(filteredResps)}>↓ CSV</button>
         </div>
+      </div>
       <div className="dash-tabs" style={{ marginTop: 20 }}>
         {tabs.map((t) => (<button key={t.id} className={`dash-tab${tab === t.id ? " on" : ""}`} onClick={() => setTab(t.id)}>{t.label}</button>))}
       </div>
