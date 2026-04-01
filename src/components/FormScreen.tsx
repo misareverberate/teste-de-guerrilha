@@ -115,9 +115,13 @@ export default function FormScreen({ onSubmit, onPctChange }: Props) {
 
       <div className="form-foot">
         <div className="form-foot-inner">
-          <button className="btn btn-back" style={{ visibility: cur === 0 ? "hidden" : "visible" }} onClick={() => nav(-1)}>←</button>
+          {cur > 0 && (
+            <button className="btn btn-back shrink-0" onClick={() => nav(-1)}>
+              ←
+            </button>
+          )}
           <button
-            className={`btn ${isLast ? "btn-send" : "btn-next"}${submitting ? " btn-sending" : ""}`}
+            className={`btn ${isLast ? "btn-send" : "btn-next"}${submitting ? " btn-sending" : ""} ${cur === 0 ? "w-full" : "flex-1"}`}
             onClick={isLast ? handleSubmit : () => nav(1)}
             disabled={submitting || (!isLast && !canContinue) || (isLast && !canSubmit)}
           >

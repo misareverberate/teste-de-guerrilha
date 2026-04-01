@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis
@@ -30,6 +30,17 @@ export default function Dashboard({ resps }: Props) {
   const [showFilter, setShowFilter] = useState(false);
   const [crossField1, setCrossField1] = useState("games");
   const [crossField2, setCrossField2] = useState("nota");
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 640px)");
+    const update = () => setIsMobile(media.matches);
+
+    update();
+    media.addEventListener("change", update);
+
+    return () => media.removeEventListener("change", update);
+  }, []);
 
   const filteredResps = useMemo(() => {
     let r = resps;
@@ -90,15 +101,19 @@ export default function Dashboard({ resps }: Props) {
   function BarCard({ title, field, color = "#4338ca" }: { title: string; field: string; color?: string }) {
     const data = toBarData(field);
     if (!data.length) return null;
+
+    const yAxisWidth = isMobile ? 88 : 112;
+    const chartHeight = Math.max(isMobile ? 180 : 220, data.length * (isMobile ? 40 : 48));
+
     return (
       <div className="cc">
         <div className="cc-t">{title}</div>
-        <ResponsiveContainer width="100%" height={data.length * 48 + 20}>
-          <BarChart data={data} layout="vertical" margin={{ left: 0, right: 40, top: 0, bottom: 0 }}>
+        <ResponsiveContainer width="100%" height={chartHeight}>
+          <BarChart data={data} layout="vertical" margin={{ left: 0, right: isMobile ? 18 : 40, top: 0, bottom: 0 }}>
             <XAxis type="number" hide />
-            <YAxis type="category" dataKey="name" width={112} tickFormatter={(value: string) => compactLabel(value, 18)} tick={{ fontSize: 11, fill: "#9b9690" }} tickLine={false} axisLine={false} />
+            <YAxis type="category" dataKey="name" width={yAxisWidth} tickFormatter={(value: string) => compactLabel(value, isMobile ? 12 : 18)} tick={{ fontSize: isMobile ? 10 : 11, fill: "#9b9690" }} tickLine={false} axisLine={false} />
             <Tooltip content={<CTooltip />} />
-            <Bar dataKey="value" fill={color} radius={[0, 8, 8, 0]} label={{ position: "right", fontSize: 12, fill: "#9b9690" }} />
+            <Bar dataKey="value" fill={color} radius={[0, 8, 8, 0]} label={{ position: "right", fontSize: isMobile ? 10 : 12, fill: "#9b9690" }} />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -113,9 +128,9 @@ export default function Dashboard({ resps }: Props) {
         <div className="cc-t">{title}</div>
         <div className="pie-layout">
           <div className="pie-chart-wrap">
-          <ResponsiveContainer width="100%" height={160}>
+          <ResponsiveContainer width="100%" height={isMobile ? 180 : 160}>
             <PieChart>
-              <Pie data={data} cx="50%" cy="50%" innerRadius={44} outerRadius={72} dataKey="value" paddingAngle={3} strokeWidth={0}>
+              <Pie data={data} cx="50%" cy="50%" innerRadius={isMobile ? 42 : 44} outerRadius={isMobile ? 68 : 72} dataKey="value" paddingAngle={3} strokeWidth={0}>
                 {data.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
               </Pie>
               <Tooltip content={<CTooltip />} />
@@ -201,10 +216,10 @@ export default function Dashboard({ resps }: Props) {
     return (
       <div className="cc">
         <div className="cc-t">Radar de experiência (% resposta ideal)</div>
-        <ResponsiveContainer width="100%" height={260}>
-          <RadarChart data={data} margin={{ top: 10, right: 30, bottom: 10, left: 30 }}>
+        <ResponsiveContainer width="100%" height={isMobile ? 220 : 260}>
+          <RadarChart data={data} margin={{ top: 10, right: isMobile ? 10 : 30, bottom: 10, left: isMobile ? 10 : 30 }}>
             <PolarGrid stroke="#e0ddd6" />
-            <PolarAngleAxis dataKey="subject" tick={{ fontSize: 11, fill: "#9b9690" }} />
+            <PolarAngleAxis dataKey="subject" tick={{ fontSize: isMobile ? 9 : 11, fill: "#9b9690" }} />
             <Radar dataKey="score" stroke="#4338ca" fill="#4338ca" fillOpacity={0.15} dot={{ fill: "#6366f1", r: 4 }} />
           </RadarChart>
         </ResponsiveContainer>
@@ -411,7 +426,7 @@ export default function Dashboard({ resps }: Props) {
         <button className="btn-sm" onClick={() => exportCSV(filteredResps)}>↓ CSV</button>
         </div>
       </div>
-      <div className="dash-tabs" style={{ marginTop: 20 }}>
+      <div className="dash-tabs" style={{ marginTop: isMobile ? 14 : 20 }}>
         {tabs.map((t) => (<button key={t.id} className={`dash-tab${tab === t.id ? " on" : ""}`} onClick={() => setTab(t.id)}>{t.label}</button>))}
       </div>
       {tab === "overview" && <div><NotaCard /><RadarCard /><PieCard title="Perfil de gamer" field="games" /><PieCard title="Conhecimento financeiro" field="fin" /><PieCard title="Faixa etária" field="idade" /></div>}
