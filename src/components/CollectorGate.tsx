@@ -13,28 +13,14 @@ export default function CollectorGate({ initialName, onSave }: Props) {
   const trimmed = name.trim();
 
   return (
-    <div style={{
-      minHeight: "100vh",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: "24px",
-      background: "radial-gradient(circle at top, rgba(67,56,202,.10), transparent 32%), var(--bg)",
-    }}>
-      <div style={{
-        width: "min(100%, 520px)",
-        background: "var(--card)",
-        border: "1px solid var(--border)",
-        borderRadius: 20,
-        padding: 28,
-        boxShadow: "var(--shadow2)",
-      }}>
+    <div className="collector-screen">
+      <div className="collector-card">
         <div className="sec-eye">Operador</div>
-        <div className="sec-head" style={{ marginBottom: 12 }}>Quem está coletando agora?</div>
-        <div style={{ color: "var(--ink2)", lineHeight: 1.6, marginBottom: 20 }}>
+        <div className="sec-head collector-head">Quem está coletando agora?</div>
+        <div className="collector-copy">
           Esse nome fica salvo só neste aparelho para identificar quem registrou as respostas no evento.
         </div>
-        <div className="qw" style={{ marginBottom: 20 }}>
+        <div className="qw collector-field">
           <div className="ql">Nome do coletor</div>
           <input
             className="q-in"

@@ -85,28 +85,26 @@ export default function Home() {
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       {/* TOPBAR */}
       <div className="topbar">
-        <div className="brand">
-          Mestres do <em>Sistema</em>
+        <div className="topbar-main">
+          <div className="brand">
+            Mestres do <em>Sistema</em>
+          </div>
+          <div className="collector-pill">
+            Coletor: {collectorName}
+          </div>
         </div>
-        <div style={{
-          fontSize: 11,
-          color: "var(--ink3)",
-          fontWeight: 600,
-          whiteSpace: "nowrap",
-        }}>
-          Coletor: {collectorName}
-        </div>
-        {screen === "form" ? (
-          <>
-            <div className="prog-wrap">
-              <div className="prog-fill" style={{ width: `${pct}%` }} />
+        <div className="topbar-side">
+          {screen === "form" ? (
+            <div className="topbar-progress">
+              <div className="prog-wrap">
+                <div className="prog-fill" style={{ width: `${pct}%` }} />
+              </div>
+              <div className="prog-pct">{pct}%</div>
             </div>
-            <div className="prog-pct">{pct}%</div>
-          </>
-        ) : (
-          <div style={{ flex: 1 }} />
-        )}
-        <div className="tab-row">
+          ) : (
+            <div className="topbar-spacer" />
+          )}
+          <div className="tab-row">
           <button
             className={`tab-btn${screen === "form" ? " on" : ""}`}
             onClick={() => setScreen("form")}
@@ -128,6 +126,7 @@ export default function Home() {
           >
             Dados
           </button>
+          </div>
         </div>
       </div>
 
