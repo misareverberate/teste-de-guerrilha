@@ -18,18 +18,27 @@ export default function FormScreen({ onSubmit, onPctChange }: Props) {
   const [submitting, setSubmitting] = useState(false);
 
   const setQ = useCallback((id: string, val: unknown) => setAns((a) => ({ ...a, [id]: val })), []);
+  const hasAnswer = useCallback((id: string) => {
+    const value = ans[id];
+
+    if (typeof value === "string") {
+      return value.trim().length > 0;
+    }
+
+    return value !== undefined && value !== null;
+  }, [ans]);
 
   const totalReq = useMemo(() => SECS.flatMap((s) => s.qs).filter((q) => q.t !== "tx").length, []);
   const doneReq = useMemo(
-    () => SECS.flatMap((s) => s.qs).filter((q) => q.t !== "tx" && ans[q.id] !== undefined).length,
-    [ans]
+    () => SECS.flatMap((s) => s.qs).filter((q) => q.t !== "tx" && hasAnswer(q.id)).length,
+    [hasAnswer]
   );
   const pct = Math.round((doneReq / totalReq) * 100);
 
   useEffect(() => { onPctChange(pct); }, [pct, onPctChange]);
 
   function isSectionDone(i: number) {
-    return SECS[i].qs.filter((q) => q.t !== "tx").every((q) => ans[q.id] !== undefined);
+    return SECS[i].qs.filter((q) => q.t !== "tx").every((q) => hasAnswer(q.id));
   }
 
   function nav(d: number) {
@@ -61,6 +70,8 @@ export default function FormScreen({ onSubmit, onPctChange }: Props) {
   const s = SECS[cur];
   const isLast = cur === SECS.length - 1;
   const animClass = dir > 0 ? "slide-r" : "slide-l";
+  const canContinue = isSectionDone(cur);
+  const canSubmit = doneReq === totalReq;
 
   return (
     <div style={{ paddingBottom: 120 }}>
@@ -107,7 +118,7 @@ export default function FormScreen({ onSubmit, onPctChange }: Props) {
           <button
             className={`btn ${isLast ? "btn-send" : "btn-next"}${submitting ? " btn-sending" : ""}`}
             onClick={isLast ? handleSubmit : () => nav(1)}
-            disabled={submitting}
+            disabled={submitting || (!isLast && !canContinue) || (isLast && !canSubmit)}
           >
             {submitting ? (<><span className="spinner" />Enviando…</>) : isLast ? "Enviar respostas ✓" : "Continuar →"}
           </button>

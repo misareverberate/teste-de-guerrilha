@@ -3,18 +3,36 @@
 import { noteHex } from "@/lib/helpers";
 import type { Entry } from "@/lib/data";
 
+type ConfettiPiece = {
+  id: number;
+  left: number;
+  delay: number;
+  color: string;
+  size: number;
+  duration: number;
+};
+
+function confettiValue(seed: number, min: number, max: number) {
+  const normalized = ((seed * 9301 + 49297) % 233280) / 233280;
+  return min + normalized * (max - min);
+}
+
 function Confetti() {
   const colors = ["#4338ca","#6366f1","#0d9488","#14b8a6","#d97706","#dc2626","#ec4899"];
-  const pieces = Array.from({ length: 30 }, (_, i) => ({
-    id: i, left: Math.random() * 100, delay: Math.random() * 1.5,
-    color: colors[i % colors.length], size: 6 + Math.random() * 6,
+  const pieces: ConfettiPiece[] = Array.from({ length: 30 }, (_, i) => ({
+    id: i,
+    left: confettiValue(i + 1, 0, 100),
+    delay: confettiValue(i + 11, 0, 1.5),
+    color: colors[i % colors.length],
+    size: confettiValue(i + 21, 6, 12),
+    duration: confettiValue(i + 31, 1.5, 2.5),
   }));
   return (
     <>
       {pieces.map((p) => (
         <div key={p.id} className="confetti-piece" style={{
           left: `${p.left}%`, top: -20, width: p.size, height: p.size,
-          background: p.color, animationDelay: `${p.delay}s`, animationDuration: `${1.5 + Math.random()}s`,
+          background: p.color, animationDelay: `${p.delay}s`, animationDuration: `${p.duration}s`,
         }} />
       ))}
     </>
