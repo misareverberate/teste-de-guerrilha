@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { SECS, type Entry } from "@/lib/data";
+import { createEntryId } from "@/lib/helpers";
 import ScaleQ from "./ScaleQ";
 import ChoiceQ from "./ChoiceQ";
 
@@ -59,7 +60,7 @@ export default function FormScreen({ onSubmit, onPctChange }: Props) {
     if (submitting) return;
     setSubmitting(true);
     await new Promise((r) => setTimeout(r, 800));
-    const entry = { id: Date.now(), ts: new Date().toLocaleString("pt-BR"), ...ans } as Entry;
+    const entry = { id: createEntryId(), ts: new Date().toLocaleString("pt-BR"), ...ans } as Entry;
     await onSubmit(entry);
     setAns({});
     setCur(0);

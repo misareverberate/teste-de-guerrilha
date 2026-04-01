@@ -6,7 +6,7 @@ import {
   PieChart, Pie, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis
 } from "recharts";
 import { SECS, type Entry } from "@/lib/data";
-import { noteHex, exportJSON, exportCSV } from "@/lib/helpers";
+import { noteHex, exportJSON, exportCSV, getStringValue } from "@/lib/helpers";
 
 function CTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ name: string; value: number }>; label?: string }) {
   if (!active || !payload?.length) return null;
@@ -20,11 +20,11 @@ function CTooltip({ active, payload, label }: { active?: boolean; payload?: Arra
   );
 }
 
-type Props = { resps: Entry[]; onClear: () => void };
+type Props = { resps: Entry[] };
 
-export default function Dashboard({ resps, onClear }: Props) {
+export default function Dashboard({ resps }: Props) {
   const [tab, setTab] = useState("overview");
-  const [openCard, setOpenCard] = useState<number | null>(null);
+  const [openCard, setOpenCard] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [filterAge, setFilterAge] = useState<string | null>(null);
   const [showFilter, setShowFilter] = useState(false);
@@ -37,9 +37,10 @@ export default function Dashboard({ resps, onClear }: Props) {
     if (search.trim()) {
       const s = search.toLowerCase();
       r = r.filter((x) =>
-        (x.nome || "").toLowerCase().includes(s) ||
-        (x.gostou || "").toLowerCase().includes(s) ||
-        (x.melhoria || "").toLowerCase().includes(s)
+        getStringValue(x.coletor).toLowerCase().includes(s) ||
+        getStringValue(x.nome).toLowerCase().includes(s) ||
+        getStringValue(x.gostou).toLowerCase().includes(s) ||
+        getStringValue(x.melhoria).toLowerCase().includes(s)
       );
     }
     return r;
@@ -64,7 +65,10 @@ export default function Dashboard({ resps, onClear }: Props) {
 
   function cntF(field: string): Record<string, number> {
     const c: Record<string, number> = {};
-    filteredResps.forEach((r) => { const v = r[field] as string; if (v) c[v] = (c[v] || 0) + 1; });
+    filteredResps.forEach((r) => {
+      const v = getStringValue((r as Record<string, unknown>)[field]);
+      if (v) c[v] = (c[v] || 0) + 1;
+    });
     return c;
   }
   function toBarData(field: string, order?: string[]) {
@@ -224,8 +228,8 @@ export default function Dashboard({ resps, onClear }: Props) {
 
   function TextAnswers({ field, label }: { field: string; label: string }) {
     const items = filteredResps.filter((r) => ((r as Record<string, unknown>)[field] as string)?.trim()).map((r) => ({
-      name: r.nome || "Anônimo",
-      text: (r as Record<string, unknown>)[field] as string,
+      name: getStringValue(r.nome) || "Anônimo",
+      text: getStringValue((r as Record<string, unknown>)[field]),
       ts: r.ts,
     }));
     if (!items.length) return (
@@ -259,7 +263,7 @@ export default function Dashboard({ resps, onClear }: Props) {
         if (nota <= 8) return "7-8 (bom)";
         return "9-10 (ótimo)";
       }
-      return ((r as Record<string, unknown>)[field] as string) || "Sem resposta";
+      return getStringValue((r as Record<string, unknown>)[field]) || "Sem resposta";
     }
     const rows = useMemo(() => {
       const groups: Record<string, Record<string, number>> = {};
@@ -336,7 +340,9 @@ export default function Dashboard({ resps, onClear }: Props) {
               {r.nota && <div className="rc-nt" style={{ color: noteHex(r.nota) }}>{r.nota}/10</div>}
             </div>
             <div className="rc-chips">
-              {[r.idade, r.games, r.fin, r.recom].filter(Boolean).map((t) => (<span key={t} className="rchip">{t}</span>))}
+              {[r.coletor, r.idade, r.games, r.fin, r.recom].filter(Boolean).map((t) => (
+                <span key={String(t)} className="rchip">{t}</span>
+              ))}
             </div>
             <div style={{ fontSize: 11, color: "var(--ink3)", display: "flex", alignItems: "center", gap: 4 }}>
               {openCard === r.id ? "▲ Fechar" : "▼ Ver detalhes"}
@@ -377,7 +383,7 @@ export default function Dashboard({ resps, onClear }: Props) {
       <div className="dash-toolbar">
         <div className="search-wrap">
           <span className="search-icon">🔍</span>
-          <input className="search-box" placeholder="Buscar por nome ou resposta…" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <input className="search-box" placeholder="Buscar por coletor, nome ou resposta…" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <div className="filter-wrap">
           <button className={`btn-sm${filterAge ? " active" : ""}`} onClick={() => setShowFilter(!showFilter)}>🏷️ {filterAge || "Filtrar idade"}</button>
@@ -396,8 +402,7 @@ export default function Dashboard({ resps, onClear }: Props) {
         </div>
         <button className="btn-sm" onClick={() => exportJSON(filteredResps)}>↓ JSON</button>
         <button className="btn-sm" onClick={() => exportCSV(filteredResps)}>↓ CSV</button>
-        <button className="btn-sm red" onClick={onClear}>🗑️ Limpar</button>
-      </div>
+        </div>
       <div className="dash-tabs" style={{ marginTop: 20 }}>
         {tabs.map((t) => (<button key={t.id} className={`dash-tab${tab === t.id ? " on" : ""}`} onClick={() => setTab(t.id)}>{t.label}</button>))}
       </div>

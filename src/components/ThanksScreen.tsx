@@ -43,6 +43,7 @@ type Props = { lastEntry: Entry | null; onReset: () => void; onDash: () => void 
 
 export default function ThanksScreen({ lastEntry, onReset, onDash }: Props) {
   const pairs: [string, string][] = [
+    ["Coletor", (lastEntry?.coletor as string) || "—"],
     ["Nome", lastEntry?.nome || "Anônimo"],
     ["Faixa etária", lastEntry?.idade || "—"],
     ["Nota", lastEntry?.nota ? lastEntry.nota + "/10" : "—"],

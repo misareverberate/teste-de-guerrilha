@@ -1,10 +1,57 @@
-import { STORAGE_KEY, type Entry } from "./data";
+import type { Entry } from "./data";
+import { supabase } from "./supabase";
 
-function isStoredEntry(value: unknown): value is Entry {
-  if (!value || typeof value !== "object") return false;
+const COLLECTOR_KEY = "ms_collector_name_v1";
+const STRING_FIELDS = [
+  "ts",
+  "coletor",
+  "nome",
+  "idade",
+  "games",
+  "fin",
+  "recom",
+  "aprendeu",
+  "travou",
+  "gostou",
+  "melhoria",
+  "onde",
+  "iniciou",
+  "objetivo",
+  "tutorial",
+  "tools",
+  "prog",
+  "consq",
+  "tempo",
+  "realismo",
+  "erros",
+  "habito",
+  "visual",
+];
+
+function normalizeEntry(value: unknown): Entry | null {
+  if (!value || typeof value !== "object") return null;
 
   const entry = value as Record<string, unknown>;
-  return typeof entry.id === "number" && typeof entry.ts === "string";
+  if (typeof entry.id !== "string" || typeof entry.ts !== "string") return null;
+
+  const normalized: Entry = {
+    id: entry.id,
+    ts: entry.ts,
+  };
+
+  for (const field of STRING_FIELDS) {
+    const fieldValue = entry[field];
+
+    if (typeof fieldValue === "string") {
+      normalized[field] = fieldValue;
+    }
+  }
+
+  if (typeof entry.nota === "number" && Number.isFinite(entry.nota)) {
+    normalized.nota = entry.nota;
+  }
+
+  return normalized;
 }
 
 function downloadBlob(blob: Blob, filename: string) {
@@ -59,21 +106,75 @@ export function noteBorder(n: number | undefined): string {
   return "#5eead4";
 }
 
-export async function storageGet(): Promise<Entry[]> {
-  try {
-    const v = localStorage.getItem(STORAGE_KEY);
-    if (v) {
-      const parsed: unknown = JSON.parse(v);
-      if (Array.isArray(parsed)) return parsed.filter(isStoredEntry);
-    }
-  } catch {}
-  return [];
+function parseEntries(rows: Array<{ payload: unknown }>): Entry[] {
+  return rows
+    .map((row) => normalizeEntry(row.payload))
+    .filter((entry): entry is Entry => entry !== null);
 }
 
-export async function storageSet(data: Entry[]): Promise<void> {
+export async function responsesGet(): Promise<Entry[]> {
+  if (!supabase) {
+    throw new Error("Supabase não configurado.");
+  }
+
+  const { data, error } = await supabase
+    .from("responses")
+    .select("payload")
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    throw new Error("Não foi possível carregar as respostas.");
+  }
+
+  return parseEntries(data ?? []);
+}
+
+export async function responseInsert(entry: Entry): Promise<Entry[]> {
+  if (!supabase) {
+    throw new Error("Supabase não configurado.");
+  }
+
+  const normalizedEntry = normalizeEntry(entry);
+
+  if (!normalizedEntry) {
+    throw new Error("A resposta contém dados inválidos.");
+  }
+
+  const { error } = await supabase
+    .from("responses")
+    .insert({ id: normalizedEntry.id, ts: normalizedEntry.ts, payload: normalizedEntry });
+
+  if (error) {
+    throw new Error("Não foi possível salvar a resposta.");
+  }
+
+  return responsesGet();
+}
+
+export function collectorNameGet(): string {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    return localStorage.getItem(COLLECTOR_KEY)?.trim() ?? "";
+  } catch {
+    return "";
+  }
+}
+
+export function collectorNameSet(name: string): void {
+  try {
+    localStorage.setItem(COLLECTOR_KEY, name.trim());
   } catch {}
+}
+
+export function createEntryId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+
+  return `entry-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+export function getStringValue(value: unknown): string {
+  return typeof value === "string" ? value : "";
 }
 
 export function exportJSON(resps: Entry[]): void {

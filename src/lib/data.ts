@@ -1,5 +1,4 @@
 export const L = "ABCDEFGHIJ";
-export const STORAGE_KEY = "ms_resps_v4";
 
 export type Question = {
   id: string;
@@ -19,8 +18,9 @@ export type Section = {
 };
 
 export type Entry = Record<string, unknown> & {
-  id: number;
+  id: string;
   ts: string;
+  coletor?: string;
   nota?: number;
   nome?: string;
   idade?: string;

@@ -2,34 +2,83 @@
 
 import { useState, useEffect } from "react";
 import { type Entry } from "@/lib/data";
-import { storageGet, storageSet } from "@/lib/helpers";
+import { collectorNameGet, collectorNameSet, responseInsert, responsesGet } from "@/lib/helpers";
+import { getSupabaseConfigError, isSupabaseConfigured } from "@/lib/supabase";
+import CollectorGate from "@/components/CollectorGate";
 import FormScreen from "@/components/FormScreen";
 import ThanksScreen from "@/components/ThanksScreen";
 import Dashboard from "@/components/Dashboard";
 
 export default function Home() {
+  const [collectorName, setCollectorName] = useState("");
   const [screen, setScreen] = useState<"form" | "thanks" | "dash">("form");
   const [resps, setResps] = useState<Entry[]>([]);
   const [lastEntry, setLastEntry] = useState<Entry | null>(null);
   const [pct, setPct] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    storageGet().then((d) => setResps(d));
-  }, []);
+  async function loadResponses() {
+    setLoading(true);
+    setError(null);
 
-  async function handleSubmit(entry: Entry) {
-    const next = [...resps, entry];
-    setResps(next);
-    await storageSet(next);
-    setLastEntry(entry);
-    setScreen("thanks");
+    try {
+      const data = await responsesGet();
+      setResps(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Não foi possível sincronizar os dados.");
+    } finally {
+      setLoading(false);
+    }
   }
 
-  async function handleClear() {
-    if (confirm("Apagar todas as respostas? Não pode ser desfeito.")) {
-      setResps([]);
-      await storageSet([]);
+  useEffect(() => {
+    setCollectorName(collectorNameGet());
+
+    if (!isSupabaseConfigured) {
+      setLoading(false);
+      setError(getSupabaseConfigError() ?? "Configure o Supabase para sincronizar os dados entre aparelhos.");
+      return;
     }
+
+    loadResponses();
+  }, []);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured || screen !== "dash") return;
+
+    loadResponses();
+    const interval = window.setInterval(() => {
+      void loadResponses();
+    }, 15000);
+
+    return () => window.clearInterval(interval);
+  }, [screen]);
+
+  async function handleSubmit(entry: Entry) {
+    setSyncing(true);
+    setError(null);
+
+    try {
+      const next = await responseInsert({ ...entry, coletor: collectorName });
+      setResps(next);
+      setLastEntry({ ...entry, coletor: collectorName });
+      setScreen("thanks");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Não foi possível salvar a resposta.");
+    } finally {
+      setSyncing(false);
+    }
+  }
+
+  function handleCollectorSave(name: string) {
+    collectorNameSet(name);
+    setCollectorName(name);
+  }
+
+  if (!collectorName) {
+    return <CollectorGate initialName="" onSave={handleCollectorSave} />;
   }
 
   return (
@@ -38,6 +87,14 @@ export default function Home() {
       <div className="topbar">
         <div className="brand">
           Mestres do <em>Sistema</em>
+        </div>
+        <div style={{
+          fontSize: 11,
+          color: "var(--ink3)",
+          fontWeight: 600,
+          whiteSpace: "nowrap",
+        }}>
+          Coletor: {collectorName}
         </div>
         {screen === "form" ? (
           <>
@@ -57,6 +114,15 @@ export default function Home() {
             Teste
           </button>
           <button
+            className="tab-btn"
+            onClick={() => {
+              collectorNameSet("");
+              setCollectorName("");
+            }}
+          >
+            Trocar coletor
+          </button>
+          <button
             className={`tab-btn${screen === "dash" ? " on" : ""}`}
             onClick={() => setScreen("dash")}
           >
@@ -64,6 +130,21 @@ export default function Home() {
           </button>
         </div>
       </div>
+
+      {error && (
+        <div style={{
+          margin: "16px auto 0",
+          width: "min(960px, calc(100% - 32px))",
+          background: "var(--danger-bg)",
+          border: "1px solid rgba(220,38,38,.18)",
+          color: "var(--danger)",
+          borderRadius: 12,
+          padding: "12px 14px",
+          fontSize: 13,
+        }}>
+          {error}
+        </div>
+      )}
 
       {/* SCREENS */}
       {screen === "form" && (
@@ -81,12 +162,19 @@ export default function Home() {
           <div className="dash-h">
             <div className="dash-title">Resultados</div>
             <div className="dash-sub">
-              {resps.length
+              {loading
+                ? "Sincronizando respostas..."
+                : resps.length
                 ? `${resps.length} resposta${resps.length > 1 ? "s" : ""} coletada${resps.length > 1 ? "s" : ""}`
                 : "Nenhuma resposta ainda."}
             </div>
           </div>
-          <Dashboard resps={resps} onClear={handleClear} />
+          {syncing && (
+            <div style={{ marginBottom: 12, color: "var(--ink3)", fontSize: 12 }}>
+              Salvando resposta no banco compartilhado...
+            </div>
+          )}
+          <Dashboard resps={resps} />
         </div>
       )}
     </div>
