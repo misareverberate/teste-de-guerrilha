@@ -33,7 +33,7 @@ export default function Dashboard({ resps }: Props) {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const media = window.matchMedia("(max-width: 640px)");
+    const media = window.matchMedia("(max-width: 720px)");
     const update = () => setIsMobile(media.matches);
 
     update();

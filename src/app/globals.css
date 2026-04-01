@@ -594,6 +594,7 @@ body {
   transition: all .2s;
   display: flex; align-items: center; gap: 6px;
   white-space: nowrap;
+  min-width: 0;
 }
 .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
 .btn-sm.red { color: var(--danger); border-color: rgba(220,38,38,.2); }
@@ -620,7 +621,7 @@ body {
 
 /* STATS GRID */
 .stats-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 20px; }
-@media (max-width: 560px) { .stats-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 720px) { .stats-grid { grid-template-columns: 1fr 1fr; } }
 
 .sc {
   background: var(--card);
@@ -692,7 +693,7 @@ body {
   display: flex;
   gap: 16px;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .pie-chart-wrap {
@@ -748,6 +749,7 @@ body {
 
 .nota-breakdown {
   min-width: 0;
+  flex: 1;
 }
 
 .nota-nps {
@@ -791,6 +793,7 @@ body {
 }
 .rc:hover { box-shadow: var(--shadow2); transform: translateY(-1px); }
 .rc-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 10px; }
+.rc-top > * { min-width: 0; }
 .rc-nm { font-size: 15px; font-weight: 600; }
 .rc-ts { font-size: 11px; color: var(--ink3); margin-top: 3px; }
 .rc-nt { font-family: var(--font2); font-size: 24px; font-weight: 700; }
@@ -1070,6 +1073,12 @@ body {
     min-width: 0;
   }
 
+  .filter-wrap,
+  .filter-wrap > .btn-sm,
+  .toolbar-actions > .btn-sm {
+    width: 100%;
+  }
+
   .btn-sm {
     justify-content: center;
     min-height: 42px;
@@ -1159,6 +1168,44 @@ body {
 
   .collector-copy {
     font-size: 14px;
+  }
+}
+
+@media (max-width: 720px) {
+  .dash-wrap {
+    padding-inline: 14px;
+  }
+
+  .pie-layout {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pie-chart-wrap {
+    width: 100%;
+    flex-basis: auto;
+    height: 180px;
+  }
+
+  .pie-legend-label {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  .nota-summary {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .nota-breakdown,
+  .nota-nps {
+    width: 100%;
+  }
+
+  .rc-top {
+    flex-direction: column;
   }
 }
 
