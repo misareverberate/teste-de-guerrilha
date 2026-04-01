@@ -39,7 +39,7 @@ export default function Home() {
 
     if (!isSupabaseConfigured) {
       setLoading(false);
-      setError(getSupabaseConfigError() ?? "Configure o Supabase para sincronizar os dados entre aparelhos.");
+      setError(getSupabaseConfigError() ?? "Configure o Banco de Dados para sincronizar os dados entre aparelhos.");
       return;
     }
 
