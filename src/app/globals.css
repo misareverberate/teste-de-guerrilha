@@ -87,6 +87,45 @@ body {
   justify-content: flex-end;
 }
 
+.mobile-menu-btn {
+  display: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.mobile-menu-btn span {
+  width: 16px;
+  height: 2px;
+  border-radius: 99px;
+  background: var(--ink2);
+  transition: transform .2s ease, opacity .2s ease;
+}
+
+.mobile-menu-btn.on span:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.mobile-menu-btn.on span:nth-child(2) {
+  opacity: 0;
+}
+
+.mobile-menu-btn.on span:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+.mobile-menu {
+  display: none;
+}
+
 .topbar-progress {
   display: flex;
   align-items: center;
@@ -158,6 +197,65 @@ body {
   background: var(--card);
   color: var(--ink);
   box-shadow: var(--shadow);
+}
+
+.mobile-menu-card {
+  background: rgba(255,255,255,.96);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: var(--shadow2);
+}
+
+.mobile-menu-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--ink3);
+}
+
+.mobile-menu-name {
+  font-family: var(--font2);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-top: 4px;
+}
+
+.mobile-menu-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.mobile-menu-actions {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.mobile-menu-action {
+  min-height: 44px;
+  border-radius: 12px;
+  border: none;
+  background: var(--bg2);
+  color: var(--ink2);
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mobile-menu-action.on {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff;
+}
+
+.mobile-menu-action.secondary {
+  background: var(--card);
+  border: 1px solid var(--border);
 }
 
 .collector-screen {
@@ -858,39 +956,43 @@ body {
 
 @media (max-width: 640px) {
   .topbar-main {
-    flex-direction: column;
-    align-items: flex-start;
+    min-width: 0;
   }
 
   .topbar-side {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .topbar-progress {
-    width: 100%;
-  }
-
-  .topbar-spacer {
     display: none;
   }
 
-  .tab-row {
-    width: 100%;
-    margin-left: 0;
-    background: transparent;
-    padding: 0;
-    gap: 8px;
+  .topbar {
+    min-height: 0;
+    padding: 10px 14px;
+    flex-direction: row;
+    align-items: center;
   }
 
-  .tab-btn {
-    flex: 1 1 calc(50% - 8px);
-    min-height: 40px;
-    background: var(--bg2);
+  .collector-pill {
+    display: none;
   }
 
-  .tab-btn.on {
-    background: var(--card);
+  .mobile-menu-btn {
+    display: flex;
+  }
+
+  .mobile-menu {
+    display: block;
+    position: sticky;
+    top: 62px;
+    z-index: 95;
+    padding: 0 14px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height .25s ease, padding-top .25s ease, padding-bottom .25s ease;
+  }
+
+  .mobile-menu.open {
+    max-height: 320px;
+    padding-top: 10px;
+    padding-bottom: 6px;
   }
 
   .sec-dots {
@@ -930,7 +1032,7 @@ body {
   }
 
   .dash-wrap {
-    padding: 20px 16px 48px;
+    padding: 16px 12px 40px;
   }
 
   .dash-toolbar {
@@ -944,7 +1046,7 @@ body {
 
   .toolbar-actions {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     width: 100%;
   }
 
@@ -957,13 +1059,14 @@ body {
   }
 
   .cc {
-    padding: 16px;
+    padding: 14px;
   }
 
   .cc-t {
     gap: 8px;
     align-items: flex-start;
     flex-direction: column;
+    margin-bottom: 12px;
   }
 
   .filter-dropdown {
@@ -981,6 +1084,7 @@ body {
   .pie-chart-wrap {
     width: 100%;
     flex-basis: auto;
+    height: 180px;
   }
 
   .pie-legend-label {
@@ -996,7 +1100,7 @@ body {
   }
 
   .nota-value {
-    font-size: 48px;
+    font-size: 42px;
   }
 
   .nota-breakdown,
@@ -1014,7 +1118,7 @@ body {
   }
 
   .rc {
-    padding: 16px;
+    padding: 14px;
   }
 
   .rc-top {
@@ -1041,23 +1145,22 @@ body {
     font-size: 14px;
   }
 
-  .collector-pill {
-    width: 100%;
-    white-space: normal;
-    border-radius: 14px;
-  }
-
-  .tab-btn {
-    flex-basis: 100%;
-  }
-
   .stats-grid,
   .toolbar-actions {
     grid-template-columns: 1fr;
   }
 
   .sc-n {
-    font-size: 28px;
+    font-size: 24px;
+  }
+
+  .dash-tabs {
+    margin-bottom: 18px;
+  }
+
+  .dash-tab {
+    padding: 10px 14px;
+    font-size: 12px;
   }
 
   .ty-title {

@@ -18,6 +18,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   async function loadResponses() {
     setLoading(true);
@@ -65,6 +66,7 @@ export default function Home() {
       setResps(next);
       setLastEntry({ ...entry, coletor: collectorName });
       setScreen("thanks");
+      setMobileMenuOpen(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Não foi possível salvar a resposta.");
     } finally {
@@ -75,6 +77,11 @@ export default function Home() {
   function handleCollectorSave(name: string) {
     collectorNameSet(name);
     setCollectorName(name);
+  }
+
+  function goToScreen(nextScreen: "form" | "thanks" | "dash") {
+    setScreen(nextScreen);
+    setMobileMenuOpen(false);
   }
 
   if (!collectorName) {
@@ -93,6 +100,16 @@ export default function Home() {
             Coletor: {collectorName}
           </div>
         </div>
+        <button
+          className={`mobile-menu-btn${mobileMenuOpen ? " on" : ""}`}
+          onClick={() => setMobileMenuOpen((open) => !open)}
+          aria-label="Abrir menu"
+          aria-expanded={mobileMenuOpen}
+        >
+          <span />
+          <span />
+          <span />
+        </button>
         <div className="topbar-side">
           {screen === "form" ? (
             <div className="topbar-progress">
@@ -107,7 +124,7 @@ export default function Home() {
           <div className="tab-row">
           <button
             className={`tab-btn${screen === "form" ? " on" : ""}`}
-            onClick={() => setScreen("form")}
+            onClick={() => goToScreen("form")}
           >
             Teste
           </button>
@@ -116,16 +133,55 @@ export default function Home() {
             onClick={() => {
               collectorNameSet("");
               setCollectorName("");
+              setMobileMenuOpen(false);
             }}
           >
             Trocar Usuário
           </button>
           <button
             className={`tab-btn${screen === "dash" ? " on" : ""}`}
-            onClick={() => setScreen("dash")}
+            onClick={() => goToScreen("dash")}
           >
             Dados
           </button>
+          </div>
+        </div>
+      </div>
+      <div className={`mobile-menu${mobileMenuOpen ? " open" : ""}`}>
+        <div className="mobile-menu-card">
+          <div className="mobile-menu-label">Coletor ativo</div>
+          <div className="mobile-menu-name">{collectorName}</div>
+          {screen === "form" && (
+            <div className="mobile-menu-progress">
+              <div className="prog-wrap">
+                <div className="prog-fill" style={{ width: `${pct}%` }} />
+              </div>
+              <div className="prog-pct">{pct}%</div>
+            </div>
+          )}
+          <div className="mobile-menu-actions">
+            <button
+              className={`mobile-menu-action${screen === "form" ? " on" : ""}`}
+              onClick={() => goToScreen("form")}
+            >
+              Teste
+            </button>
+            <button
+              className={`mobile-menu-action${screen === "dash" ? " on" : ""}`}
+              onClick={() => goToScreen("dash")}
+            >
+              Dados
+            </button>
+            <button
+              className="mobile-menu-action secondary"
+              onClick={() => {
+                collectorNameSet("");
+                setCollectorName("");
+                setMobileMenuOpen(false);
+              }}
+            >
+              Trocar usuário
+            </button>
           </div>
         </div>
       </div>
